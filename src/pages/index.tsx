@@ -65,9 +65,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             }
             if (jokesDataCount === 1) {
                 // Jokes data is different if only one joke item was requested, jokesDataMapper return the same structure as list of jokes.
-                cachedJokesData = jokesDataMapper(jokesApiResponse, jokesDataCount);
+                cachedJokesData = jokesDataMapper(jokesApiResponse as JokeDataSingle, jokesDataCount);
             } else {
-                cachedJokesData = jokesApiResponse;
+                cachedJokesData = jokesApiResponse as JokeFullListData;
             }
         } catch (err: unknown) {
             error = await getError(err as ErrorProps, locale);
