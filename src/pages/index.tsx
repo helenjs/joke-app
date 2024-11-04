@@ -5,6 +5,7 @@ import {twMerge} from "tailwind-merge";
 import {jokesDataCount} from "@/app/config";
 import Error from "@components/Error/Error";
 import {fetchTranslation} from "@utils/translateFetcher";
+import {GetServerSidePropsContext} from 'next';
 
 interface JokeFullListData {
     error: boolean;
@@ -38,7 +39,8 @@ const beforeElmBorder = twMerge(
 );
 const jokeItemClass = "flex before:content-['-'] gap-1";
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+    const { locale } = context;
     if (!cachedJokesData) {
         try {
             cachedJokesData = await fetchJokes(jokesDataCount);
@@ -56,7 +58,7 @@ export async function getServerSideProps() {
         }
         return `${setup}<br>${delivery}`;
     });
-    const translatedData = textsToTranslate ? await fetchTranslation(textsToTranslate, 'fr') : [];
+    const translatedData = textsToTranslate ? await fetchTranslation(textsToTranslate, locale) : [];
     const formattedTranslate = translatedData.map((joke: string) => joke.split('<br>'));
 
     return { props: { jokeList: formattedTranslate, error }};
