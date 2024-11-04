@@ -9,7 +9,7 @@ import {GetServerSidePropsContext} from 'next';
 import {getError} from "@utils/getError";
 import {jokesDataMapper} from "@utils/jokesDataMapper";
 
-interface JokeFullListData {
+export interface JokeFullListData {
     error: boolean;
     amount: number;
     jokes: JokeData[];
@@ -53,9 +53,11 @@ const jokeItemClass = "flex before:content-['-'] gap-1";
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { locale } = context;
+    // Fetch jokes data if it hasn't already been cached
     if (!cachedJokesData) {
         try {
             const jokesApiResponse = await fetchJokes(jokesDataCount);
+            // Handle error in jokes API response
             if (jokesApiResponse?.error) {
                 const ERROR = 'Failed to fetch jokes list';
                 error = await getError({message: ERROR}, locale);
@@ -82,7 +84,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return { props: { jokeList: formattedTranslate, error }};
 }
 
-const TITLE_PAGE = 'Jokes';
+const TITLE_PAGE = 'Jokes'; //title is necessary for SEO
 
 const Page = ({ jokeList, error }: PageProps) => {
     if (error) {
