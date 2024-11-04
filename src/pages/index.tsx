@@ -5,7 +5,7 @@ import {twMerge} from "tailwind-merge";
 import {jokesDataCount} from "@/app/config";
 import Error from "@components/Error/Error";
 
-interface JokeFullListData {
+export interface JokeFullListData {
     error: boolean;
     amount: number;
     jokes: JokeData[];
@@ -37,9 +37,11 @@ const beforeElmBorder = twMerge(
 );
 
 export async function getServerSideProps() {
+    // Fetch jokes data if it hasn't already been cached
     if (!cachedJokesData) {
         try {
             cachedJokesData = await fetchJokes(jokesDataCount);
+            // Handle error in jokes API response
             if (cachedJokesData?.error) {
                 error = 'Failed to fetch jokes list';
                 return;
@@ -52,7 +54,7 @@ export async function getServerSideProps() {
     return { props: { jokeList: cachedJokesData?.jokes ?? [], error }};
 }
 
-const TITLE_PAGE = 'Jokes';
+const TITLE_PAGE = 'Jokes'; //title is necessary for SEO
 
 const Page = ({ jokeList, error }: PageProps) => {
     if (error) {
