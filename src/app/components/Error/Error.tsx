@@ -1,6 +1,6 @@
 
 interface ErrorProps {
-    error: string;
+    error: string[];
 }
 
 export default function Error({error}: ErrorProps) {

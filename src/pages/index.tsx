@@ -2,7 +2,7 @@ import "@/app/globals.css";
 import {fetchJokes} from "@utils/jokesFetcher";
 import Head from "next/head";
 import {twMerge} from "tailwind-merge";
-import {jokesDataCount} from "@/app/config";
+import {errorTitle, jokesDataCount} from "@/app/config";
 import Error from "@components/Error/Error";
 import {fetchTranslation} from "@utils/translateFetcher";
 import {GetServerSidePropsContext} from 'next';
@@ -35,12 +35,12 @@ interface ErrorProps {
 }
 
 interface PageProps {
-    jokeList?: any;
-    error? : string | null;
+    jokeList?: string[][];
+    error? : string[] | null;
 }
 
 let cachedJokesData: JokeFullListData | null = null;
-let error: string | null = null;
+let error: string[] | null = null;
 
 const beforeElmBorder = twMerge(
     'before:content-[""]',
@@ -79,7 +79,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         }
         return `${setup}<br>${delivery}`;
     });
-    const translatedData = textsToTranslate ? await fetchTranslation(textsToTranslate, locale || 'en') : [];
+    let translatedData = [];
+    if (textsToTranslate) {
+        try {
+            translatedData = await fetchTranslation(textsToTranslate, locale || 'en');
+        } catch(err: unknown) {
+            error = [errorTitle, String(err)] as string[];
+        }
+    }
     const formattedTranslate = translatedData.map((joke: string) => joke.split('<br>'));
     return { props: { jokeList: formattedTranslate, error }};
 }
