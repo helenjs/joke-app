@@ -44,7 +44,7 @@ let error: string[] | null = null;
 
 const beforeElmBorder = twMerge(
     'before:content-[""]',
-    'before:-left-5 before:-right-5 before:bottom-0',
+    'before:-start-10 before:-end-5 before:bottom-0',
     'before:absolute before:h-px before:bg-black',
     'before:block',
     'last:before:hidden'
@@ -104,7 +104,7 @@ const Page = ({ jokeList, error }: PageProps) => {
                 <title>{TITLE_PAGE}</title>
                 <meta property="og:title" content={TITLE_PAGE} key="title"/>
             </Head>
-            <ol className="list-decimal">
+            <ol className="list-decimal ps-5">
                 {jokeList?.map((joke: string[], index: number) => (
                     <li key={`joke-${index}`} className={twMerge('relative py-2', beforeElmBorder)}>
                         {joke.map((item, index) => (
