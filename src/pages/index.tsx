@@ -6,6 +6,7 @@ import {jokesDataCount} from "@/app/config";
 import Error from "@components/Error/Error";
 import {fetchTranslation} from "@utils/translateFetcher";
 import {GetServerSidePropsContext} from 'next';
+import {getError} from "@utils/getError";
 
 interface JokeFullListData {
     error: boolean;
@@ -20,6 +21,12 @@ export interface JokeData {
     setup?: string;
     delivery?: string;
     id: number;
+}
+
+interface ErrorProps {
+    message: string;
+    code?: string;
+    status?: number;
 }
 
 interface PageProps {
@@ -43,13 +50,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { locale } = context;
     if (!cachedJokesData) {
         try {
-            cachedJokesData = await fetchJokes(jokesDataCount);
-            if (cachedJokesData?.error) {
-                error = 'Failed to fetch jokes list';
+            const jokesApiResponse = await fetchJokes(jokesDataCount);
+            if (jokesApiResponse?.error) {
+                const ERROR = 'Failed to fetch jokes list';
+                error = await getError({message: ERROR}, locale);
                 return;
             }
         } catch (err: unknown) {
-            error = err.message ?? 'Failed to fetch jokes list';
+            error = await getError(err as ErrorProps, locale);
         }
     }
     const textsToTranslate = cachedJokesData?.jokes?.map(({type, joke, setup, delivery}: Partial<JokeData>) => {
@@ -58,9 +66,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         }
         return `${setup}<br>${delivery}`;
     });
-    const translatedData = textsToTranslate ? await fetchTranslation(textsToTranslate, locale) : [];
+    const translatedData = textsToTranslate ? await fetchTranslation(textsToTranslate, locale || 'en') : [];
     const formattedTranslate = translatedData.map((joke: string) => joke.split('<br>'));
-
     return { props: { jokeList: formattedTranslate, error }};
 }
 
