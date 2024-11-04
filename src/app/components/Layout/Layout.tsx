@@ -13,7 +13,7 @@ export default function Layout({
     return (
         <>
             <Header />
-            <main>
+            <main className="max-w-screen-lg m-auto py-5">
                 {children}
             </main>
         </>
