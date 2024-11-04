@@ -2,6 +2,8 @@ import "@/app/globals.css";
 import {fetchJokes} from "@utils/jokesFetcher";
 import Head from "next/head";
 import {twMerge} from "tailwind-merge";
+import {jokesDataCount} from "@/app/config";
+import Error from "@components/Error/Error";
 
 interface JokeFullListData {
     error: boolean;
@@ -20,9 +22,12 @@ export interface JokeData {
 
 interface PageProps {
     jokeList?: any;
+    error? : string | null;
 }
 
 let cachedJokesData: JokeFullListData | null = null;
+let error: string | null = null;
+
 const beforeElmBorder = twMerge(
     'before:content-[""]',
     'before:-left-5 before:-right-5 before:bottom-0',
@@ -34,18 +39,26 @@ const beforeElmBorder = twMerge(
 export async function getServerSideProps() {
     if (!cachedJokesData) {
         try {
-            cachedJokesData = await fetchJokes(5);
+            cachedJokesData = await fetchJokes(jokesDataCount);
+            if (cachedJokesData?.error) {
+                error = 'Failed to fetch jokes list';
+                return;
+            }
         } catch (err: unknown) {
-            console.error('Failed to fetch jokes list');
+            error = err.message ?? 'Failed to fetch jokes list';
         }
     }
 
-    return { props: { jokeList: cachedJokesData?.jokes ?? [] }};
+    return { props: { jokeList: cachedJokesData?.jokes ?? [], error }};
 }
 
-const TITLE_PAGE = 'Jokes list';
+const TITLE_PAGE = 'Jokes';
 
-const Page = ({ jokeList }: PageProps) => {
+const Page = ({ jokeList, error }: PageProps) => {
+    if (error) {
+        return <Error error={error} />
+    }
+
     return (
         <div>
             <Head>
