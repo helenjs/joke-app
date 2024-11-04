@@ -7,6 +7,7 @@ import Error from "@components/Error/Error";
 import {fetchTranslation} from "@utils/translateFetcher";
 import {GetServerSidePropsContext} from 'next';
 import {getError} from "@utils/getError";
+import {jokesDataMapper} from "@utils/jokesDataMapper";
 
 interface JokeFullListData {
     error: boolean;
@@ -21,6 +22,10 @@ export interface JokeData {
     setup?: string;
     delivery?: string;
     id: number;
+}
+
+export interface JokeDataSingle extends JokeData{
+    error: boolean;
 }
 
 interface ErrorProps {
@@ -55,6 +60,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 const ERROR = 'Failed to fetch jokes list';
                 error = await getError({message: ERROR}, locale);
                 return;
+            }
+            if (jokesDataCount === 1) {
+                // Jokes data is different if only one joke item was requested, jokesDataMapper return the same structure as list of jokes.
+                cachedJokesData = jokesDataMapper(jokesApiResponse, jokesDataCount);
+            } else {
+                cachedJokesData = jokesApiResponse;
             }
         } catch (err: unknown) {
             error = await getError(err as ErrorProps, locale);
