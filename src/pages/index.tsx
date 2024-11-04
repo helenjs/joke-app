@@ -2,8 +2,12 @@ import "@/app/globals.css";
 import {fetchJokes} from "@utils/jokesFetcher";
 import Head from "next/head";
 import {twMerge} from "tailwind-merge";
-import {jokesDataCount} from "@/app/config";
+import {errorTitle, jokesDataCount} from "@/app/config";
 import Error from "@components/Error/Error";
+import {fetchTranslation} from "@utils/translateFetcher";
+import {GetServerSidePropsContext} from 'next';
+import {getError} from "@utils/getError";
+import {jokesDataMapper} from "@utils/jokesDataMapper";
 
 export interface JokeFullListData {
     error: boolean;
@@ -20,13 +24,23 @@ export interface JokeData {
     id: number;
 }
 
+export interface JokeDataSingle extends JokeData{
+    error: boolean;
+}
+
+interface ErrorProps {
+    message: string;
+    code?: string;
+    status?: number;
+}
+
 interface PageProps {
-    jokeList?: any;
-    error? : string | null;
+    jokeList?: string[][];
+    error? : string[] | null;
 }
 
 let cachedJokesData: JokeFullListData | null = null;
-let error: string | null = null;
+let error: string[] | null = null;
 
 const beforeElmBorder = twMerge(
     'before:content-[""]',
@@ -35,23 +49,46 @@ const beforeElmBorder = twMerge(
     'before:block',
     'last:before:hidden'
 );
+const jokeItemClass = "flex before:content-['-'] gap-1";
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+    const { locale } = context;
     // Fetch jokes data if it hasn't already been cached
     if (!cachedJokesData) {
         try {
-            cachedJokesData = await fetchJokes(jokesDataCount);
+            const jokesApiResponse = await fetchJokes(jokesDataCount);
             // Handle error in jokes API response
-            if (cachedJokesData?.error) {
-                error = 'Failed to fetch jokes list';
+            if (jokesApiResponse?.error) {
+                const ERROR = 'Failed to fetch jokes list';
+                error = await getError({message: ERROR}, locale);
                 return;
             }
+            if (jokesDataCount === 1) {
+                // Jokes data is different if only one joke item was requested, jokesDataMapper return the same structure as list of jokes.
+                cachedJokesData = jokesDataMapper(jokesApiResponse as JokeDataSingle, jokesDataCount);
+            } else {
+                cachedJokesData = jokesApiResponse as JokeFullListData;
+            }
         } catch (err: unknown) {
-            error = err.message ?? 'Failed to fetch jokes list';
+            error = await getError(err as ErrorProps, locale);
         }
     }
-
-    return { props: { jokeList: cachedJokesData?.jokes ?? [], error }};
+    const textsToTranslate = cachedJokesData?.jokes?.map(({type, joke, setup, delivery}: Partial<JokeData>) => {
+        if(type === 'single' && joke) {
+            return joke.replace('\n', '<br>') ;
+        }
+        return `${setup}<br>${delivery}`;
+    });
+    let translatedData = [];
+    if (textsToTranslate) {
+        try {
+            translatedData = await fetchTranslation(textsToTranslate, locale || 'en');
+        } catch(err: unknown) {
+            error = [errorTitle, String(err)] as string[];
+        }
+    }
+    const formattedTranslate = translatedData.map((joke: string) => joke.split('<br>'));
+    return { props: { jokeList: formattedTranslate, error }};
 }
 
 const TITLE_PAGE = 'Jokes'; //title is necessary for SEO
@@ -68,14 +105,11 @@ const Page = ({ jokeList, error }: PageProps) => {
                 <meta property="og:title" content={TITLE_PAGE} key="title"/>
             </Head>
             <ol className="list-decimal">
-                {jokeList?.map(({type, joke, setup, delivery}: JokeData, index: number) => (
+                {jokeList?.map((joke: string[], index: number) => (
                     <li key={`joke-${index}`} className={twMerge('relative py-2', beforeElmBorder)}>
-                        {type === 'single' ? (joke) : (
-                            <>
-                                <p>- {setup}</p>
-                                <p>- {delivery}</p>
-                            </>
-                        )}
+                        {joke.map((item, index) => (
+                            <div className={jokeItemClass} key={`joke-${index}-line-${index}`}>{item}</div>
+                        ))}
                     </li>
                 ))}
             </ol>
