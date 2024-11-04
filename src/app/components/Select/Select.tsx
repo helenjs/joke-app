@@ -1,20 +1,25 @@
+import {ComponentProps} from "react";
+import {twMerge} from "tailwind-merge";
 
 interface selectOption {
     key: string;
     name: string;
 }
 
-interface SelectProps {
+interface SelectProps extends ComponentProps<'select'>{
     options: selectOption[];
     value: string;
     onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
     placeholder?: string;
 }
 
-const Select = ({ options, value, onChange, placeholder = "Select value" }: SelectProps) => {
+const Select = ({ options, value, onChange, placeholder = "Select value", className }: SelectProps) => {
     return (
         <select
-            className="mb-4 p-2 border rounded outline-none"
+            className={twMerge(
+                'mb-4 p-2 border rounded outline-none',
+                className
+            )}
             value={value}
             onChange={onChange}
         >
