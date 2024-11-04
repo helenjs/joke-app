@@ -6,7 +6,6 @@ interface LayoutProps {
     error?: string;
 }
 
-
 export default function Layout({
         children,
     }: Readonly<LayoutProps>) {

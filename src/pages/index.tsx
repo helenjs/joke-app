@@ -75,6 +75,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             error = await getError(err as ErrorProps, locale);
         }
     }
+    //Reformat code for translates API
     const textsToTranslate = cachedJokesData?.jokes?.map(({type, joke, setup, delivery}: Partial<JokeData>) => {
         if(type === 'single' && joke) {
             return joke.replace('\n', '<br>') ;
@@ -112,7 +113,7 @@ const Page = ({ jokeList, error, locale }: PageProps) => {
     }
 
     return (
-        <div>
+        <>
             <Head>
                 <title>{TITLE_PAGE}</title>
                 <meta property="og:title" content={TITLE_PAGE} key="title"/>
@@ -131,7 +132,7 @@ const Page = ({ jokeList, error, locale }: PageProps) => {
                     </li>
                 ))}
             </ol>
-        </div>
+        </>
     );
 };
 

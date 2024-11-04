@@ -1,3 +1,4 @@
+import React from 'react';
 import {ComponentProps} from "react";
 import {twMerge} from "tailwind-merge";
 
@@ -13,7 +14,7 @@ interface SelectProps extends ComponentProps<'select'>{
     placeholder?: string;
 }
 
-const Select = ({ options, value, onChange, placeholder = "Select value", className }: SelectProps) => {
+const Select = React.memo(({ options, value, onChange, placeholder = "Select value", className }: SelectProps) => {
     return (
         <select
             className={twMerge(
@@ -31,6 +32,8 @@ const Select = ({ options, value, onChange, placeholder = "Select value", classN
             ))}
         </select>
     );
-};
+});
+
+Select.displayName = 'Select';
 
 export default Select;

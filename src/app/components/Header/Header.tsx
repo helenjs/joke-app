@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useCallback} from 'react';
 import Image from "next/image";
 import Select from "@/app/components/Select/Select";
 import {supportedLocales} from '@/app/config';
@@ -9,11 +9,12 @@ export default function Header() {
     const router = useRouter();
     const { locale, pathname } = router;
 
-    const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleLanguageChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
         const lang = event.target.value;
         setLang(event.target.value);
         router.push(pathname, pathname, { locale: lang })
-    };
+    }, [pathname, router]);
+
     return (
         <header className='flex justify-between bg-slate-950 p-3'>
             <Image
