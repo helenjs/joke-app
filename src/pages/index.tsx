@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import "@/app/globals.css";
 import {fetchJokes} from "@utils/jokesFetcher";
 import Head from "next/head";
@@ -37,6 +38,7 @@ interface ErrorProps {
 interface PageProps {
     jokeList?: string[][];
     error? : string[] | null;
+    locale: string;
 }
 
 let cachedJokesData: JokeFullListData | null = null;
@@ -88,12 +90,23 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         }
     }
     const formattedTranslate = translatedData.map((joke: string) => joke.split('<br>'));
-    return { props: { jokeList: formattedTranslate, error }};
+    return { props: { jokeList: formattedTranslate, error, locale }};
 }
 
 const TITLE_PAGE = 'Jokes'; //title is necessary for SEO
 
-const Page = ({ jokeList, error }: PageProps) => {
+const Page = ({ jokeList, error, locale }: PageProps) => {
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(true); // Show loading initially if locale changed
+        const timer = setTimeout(() => {
+            setIsLoading(false);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [locale]);
+
     if (error) {
         return <Error error={error} />
     }
@@ -104,6 +117,11 @@ const Page = ({ jokeList, error }: PageProps) => {
                 <title>{TITLE_PAGE}</title>
                 <meta property="og:title" content={TITLE_PAGE} key="title"/>
             </Head>
+            { isLoading && (
+                <div className="absolute top-1/2 start-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"/>
+                </div>
+            )}
             <ol className="list-decimal ps-5">
                 {jokeList?.map((joke: string[], index: number) => (
                     <li key={`joke-${index}`} className={twMerge('relative py-2', beforeElmBorder)}>
