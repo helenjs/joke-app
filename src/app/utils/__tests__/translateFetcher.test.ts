@@ -1,4 +1,4 @@
-import { fetchTranslation } from './translateFetcher';
+import { fetchTranslation } from '../translateFetcher';
 
 global.fetch = jest.fn();
 
